@@ -1,4 +1,4 @@
-package com.Marin.PedidosPoseidon.application.user.dto;
+package com.Marin.PedidosPoseidon.application.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
