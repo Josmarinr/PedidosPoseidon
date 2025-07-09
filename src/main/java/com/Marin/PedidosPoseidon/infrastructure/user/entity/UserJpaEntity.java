@@ -8,20 +8,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users",
-        indexes = {
-                @Index(name = "idx_username", columnList = "username"),
-                @Index(name = "idx_email", columnList = "email"),
-                @Index(name = "idx_role", columnList = "role"),
-                @Index(name = "idx_active", columnList = "active"),
-                @Index(name = "idx_created_at", columnList = "created_at")
-        })
+@Table(name = "users")
 @Data
 @Builder
 @NoArgsConstructor
@@ -29,7 +21,6 @@ import java.util.UUID;
 public class UserJpaEntity {
 
     @Id
-    @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
@@ -63,6 +54,24 @@ public class UserJpaEntity {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID();
+        }
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (updatedAt == null) {
+            updatedAt = LocalDateTime.now();
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
     // Método de conveniencia para obtener el nombre completo
     public String getFullName() {

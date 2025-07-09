@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,7 +17,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthTokenJpaEntity {
+
     @Id
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "user_id", nullable = false)
@@ -34,10 +37,12 @@ public class AuthTokenJpaEntity {
     @Column(name = "refresh_token_expires_at", nullable = false)
     private LocalDateTime refreshTokenExpiresAt;
 
-    @Column(nullable = false)
-    private boolean revoked;
+    @Builder.Default
+    @Column(name = "revoked", nullable = false)
+    private boolean revoked = false;
 
-    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -49,5 +54,4 @@ public class AuthTokenJpaEntity {
             createdAt = LocalDateTime.now();
         }
     }
-
 }
