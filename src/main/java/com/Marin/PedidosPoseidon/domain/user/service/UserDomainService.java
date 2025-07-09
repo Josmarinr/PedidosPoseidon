@@ -7,11 +7,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class UserDomainService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordService passwordService;
 
-    public UserDomainService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserDomainService(UserRepository userRepository, PasswordService passwordService) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.passwordService = passwordService;
     }
 
     public void validateUserCreation(User user) {
@@ -22,33 +22,30 @@ public class UserDomainService {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new UserException("El email ya está registrado");
         }
+    }
 
-        validatePassword(user.getPassword());
+    public void validateUserUpdate(User existingUser, User updatedUser) {
+        // Validar username único si cambió
+        if (!existingUser.getUsername().equals(updatedUser.getUsername())) {
+            if (userRepository.existsByUsername(updatedUser.getUsername())) {
+                throw new UserException("El nombre de usuario ya existe");
+            }
+        }
+
+        // Validar email único si cambió
+        if (!existingUser.getEmail().equals(updatedUser.getEmail())) {
+            if (userRepository.existsByEmail(updatedUser.getEmail())) {
+                throw new UserException("El email ya está registrado");
+            }
+        }
     }
 
     public String encodePassword(String rawPassword) {
-        return passwordEncoder.encode(rawPassword);
+        passwordService.validatePasswordStrength(rawPassword);
+        return passwordService.encode(rawPassword);
     }
 
     public boolean validatePassword(String rawPassword, String encodedPassword) {
-        return passwordEncoder.matches(rawPassword, encodedPassword);
-    }
-
-    private void validatePassword(String password) {
-        if (password == null || password.length() < 8) {
-            throw new UserException("La contraseña debe tener al menos 8 caracteres");
-        }
-
-        if (!password.matches(".*[A-Z].*")) {
-            throw new UserException("La contraseña debe tener al menos una mayúscula");
-        }
-
-        if (!password.matches(".*[a-z].*")) {
-            throw new UserException("La contraseña debe tener al menos una minúscula");
-        }
-
-        if (!password.matches(".*[0-9].*")) {
-            throw new UserException("La contraseña debe tener al menos un número");
-        }
+        return passwordService.matches(rawPassword, encodedPassword);
     }
 }
