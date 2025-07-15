@@ -5,6 +5,7 @@ import com.Josmarinr.PedidosPoseidon.domain.role.port.out.RoleRepository;
 import com.Josmarinr.PedidosPoseidon.domain.user.model.User;
 import com.Josmarinr.PedidosPoseidon.domain.user.port.in.UserService;
 import com.Josmarinr.PedidosPoseidon.domain.user.port.out.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;

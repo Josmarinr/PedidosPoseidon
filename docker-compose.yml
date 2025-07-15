@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: pedidosposeidon-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pedidos_poseidon
+      POSTGRES_USER: poseidon
+      POSTGRES_PASSWORD: poseidonadmin2025
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d/
+    networks:
+      - pedidos-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U poseidon -d pedidos_poseidon"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicación Spring Boot
+  app:
+    build: .
+    container_name: pedidos-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      # Perfil de Spring
+      SPRING_PROFILES_ACTIVE: docker
+
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: pedidos_poseidon
+      DB_USERNAME: poseidon
+      DB_PASSWORD: poseidonadmin2025
+
+      # Application
+      DDL_AUTO: ${DDL_AUTO:-update}
+      SHOW_SQL: ${SHOW_SQL:-false}
+      FORMAT_SQL: ${FORMAT_SQL:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      SERVER_PORT: 8080
+
+      # Security
+      JWT_SECRET: ${JWT_SECRET:-mySecretKey123456789012345678901234567890}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pedidos-network
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  pedidos-network:
+    driver: bridge
